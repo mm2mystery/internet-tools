@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet Tools — Wikipedia-style Wiki Index</title>
+
+    <!-- Wikipedia-like base styling -->
+    <style>
+        /* ── Reset & base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Linux Libertine', 'Georgia', 'Times New Roman', serif;
+            background: #f6f6f6;
+            color: #202122;
+            line-height: 1.6;
+            padding: 0;
+        }
+
+        a {
+            color: #0645ad;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        a:visited {
+            color: #0b0080;
+        }
+
+        /* ── Layout containers ── */
+        .mw-page {
+            max-width: 1440px;
+            margin: 0 auto;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ── Header ── */
+        .mw-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #a2a9b1;
+            padding: 0.8rem 1.5rem 0.4rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mw-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mw-logo {
+            font-size: 2rem;
+            font-weight: 400;
+            font-family: 'Linux Libertine', 'Georgia', serif;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+        .mw-logo small {
+            font-size: 0.9rem;
+            font-weight: 300;
+            color: #54595d;
+            letter-spacing: 0.2px;
+        }
+        .mw-logo img {
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .mw-header-right {
+            font-size: 0.85rem;
+            color: #202122;
+        }
+        .mw-header-right a {
+            margin: 0 0.4rem;
+        }
+
+        /* ── Tabs (article / talk) ── */
+        .mw-tabs {
+            background: #fff;
+            border-bottom: 1px solid #a2a9b1;
+            padding: 0 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.2rem 1.2rem;
+            font-size: 0.85rem;
+        }
+        .mw-tabs .active {
+            font-weight: 600;
+            border-bottom: 3px solid #0645ad;
+            padding-bottom: 4px;
+        }
+        .mw-tabs a {
+            padding: 0.4rem 0 0.3rem 0;
+            display: inline-block;
+            color: #0645ad;
+        }
+
+        /* ── Main 2‑col grid ── */
+        .mw-body {
+            display: flex;
+            padding: 1.5rem 1.5rem 2rem 1.5rem;
+            gap: 2rem;
+            background: #fff;
+        }
+
+        /* ── Sidebar (left) ── */
+        .mw-sidebar {
+            flex: 0 0 220px;
+            font-size: 0.85rem;
+            border-right: 1px solid #eaecf0;
+            padding-right: 1.5rem;
+        }
+        .mw-sidebar ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .mw-sidebar li {
+            margin: 0.25rem 0;
+        }
+        .mw-sidebar .sidebar-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 1rem 0 0.4rem 0;
+            border-bottom: 1px solid #eaecf0;
+            padding-bottom: 0.2rem;
+        }
+        .mw-sidebar .sidebar-title:first-of-type {
+            margin-top: 0;
+        }
+
+        /* ── Main content ── */
+        .mw-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ── Infobox (right) ── */
+        .infobox {
+            float: right;
+            clear: right;
+            margin: 0 0 1rem 1.5rem;
+            width: 280px;
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .infobox th,
+        .infobox td {
+            border: 1px solid #a2a9b1;
+            padding: 0.3rem 0.6rem;
+            vertical-align: top;
+        }
+        .infobox th {
+            background: #eaecf0;
+            text-align: left;
+            font-weight: 600;
+            width: 35%;
+        }
+        .infobox td {
+            width: 65%;
+        }
+        .infobox .infobox-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            background: #eaecf0;
+            padding: 0.4rem 0.6rem;
+        }
+        .infobox .infobox-sub {
+            text-align: center;
+            font-style: italic;
+            background: #f8f9fa;
+        }
+
+        /* ── Headings ── */
+        .mw-content h1 {
+            font-family: 'Linux Libertine', 'Georgia', serif;
+            font-weight: 400;
+            font-size: 2.2rem;
+            border-bottom: 1px solid #a2a9b1;
+            padding-bottom: 0.15rem;
+            margin-bottom: 0.6rem;
+        }
+        .mw-content h2 {
+            font-family: 'Linux Libertine', 'Georgia', serif;
+            font-weight: 400;
+            font-size: 1.6rem;
+            border-bottom: 1px solid #a2a9b1;
+            padding-bottom: 0.1rem;
+            margin: 1.8rem 0 0.6rem 0;
+        }
+        .mw-content h3 {
+            font-weight: 600;
+            font-size: 1.15rem;
+            margin: 1.2rem 0 0.3rem 0;
+        }
+        .mw-content h4 {
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 0.8rem 0 0.2rem 0;
+        }
+
+        /* ── TOC ── */
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            display: inline-block;
+            padding: 0.6rem 1.2rem 0.8rem 1.2rem;
+            margin: 0.4rem 0 1.2rem 0;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+        .toc .toc-title {
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0.8rem;
+        }
+        .toc ul ul {
+            padding-left: 1.4rem;
+        }
+        .toc li {
+            margin: 0.1rem 0;
+        }
+        .toc a {
+            color: #0645ad;
+        }
+
+        /* ── Lists ── */
+        .mw-content ul {
+            padding-left: 1.8rem;
+            margin: 0.4rem 0 0.8rem 0;
+        }
+        .mw-content li {
+            margin: 0.2rem 0;
+        }
+        .mw-content .compact-list {
+            column-count: 2;
+            column-gap: 2rem;
+        }
+        @media (max-width: 700px) {
+            .mw-content .compact-list {
+                column-count: 1;
+            }
+        }
+
+        /* ── Callout / tip ── */
+        .tip-box {
+            background: #f0f8ff;
+            border-left: 4px solid #0645ad;
+            padding: 0.6rem 1rem;
+            margin: 0.8rem 0;
+            font-size: 0.9rem;
+            border-radius: 0 4px 4px 0;
+        }
+        .tip-box strong {
+            color: #0645ad;
+        }
+
+        /* ── Misc ── */
+        .mw-content .emoji {
+            font-size: 1.05rem;
+            margin-right: 2px;
+        }
+        .mw-content hr {
+            border: none;
+            border-top: 1px solid #eaecf0;
+            margin: 1.6rem 0;
+        }
+        .mw-content .badge {
+            background: #eaecf0;
+            padding: 0 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #54595d;
+            display: inline-block;
+        }
+        .tag {
+            background: #eaf3ff;
+            color: #0645ad;
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 0 0.15rem;
+        }
+
+        /* ── Footer ── */
+        .mw-footer {
+            border-top: 1px solid #a2a9b1;
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            font-size: 0.8rem;
+            color: #54595d;
+            text-align: center;
+        }
+        .mw-footer a {
+            color: #0645ad;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .mw-body {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .mw-sidebar {
+                flex: unset;
+                border-right: none;
+                padding-right: 0;
+                border-bottom: 1px solid #eaecf0;
+                padding-bottom: 0.8rem;
+                margin-bottom: 1rem;
+            }
+            .infobox {
+                float: none;
+                margin: 0 0 1rem 0;
+                width: 100%;
+                max-width: 320px;
+            }
+            .mw-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.4rem;
+            }
+            .mw-tabs {
+                padding: 0 1rem;
+                gap: 0.2rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .mw-content h1 {
+                font-size: 1.8rem;
+            }
+            .mw-content h2 {
+                font-size: 1.4rem;
+            }
+        }
+        @media (max-width: 500px) {
+            .mw-content .compact-list {
+                column-count: 1;
+            }
+            .mw-logo {
+                font-size: 1.4rem;
+            }
+            .mw-logo img {
+                height: 30px;
+            }
+        }
+
+        /* ── print-ish ── */
+        .mw-content .small-note {
+            font-size: 0.85rem;
+            color: #54595d;
+        }
+        .mw-content .see-also {
+            background: #f8f9fa;
+            padding: 0.4rem 1rem;
+            border-left: 3px solid #0645ad;
+            margin: 1rem 0;
+        }
+
+        /* scrollable table wrapper */
+        .table-wrap {
+            overflow-x: auto;
+        }
+        .mw-content table {
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            width: 100%;
+            margin: 0.8rem 0;
+        }
+        .mw-content table th,
+        .mw-content table td {
+            border: 1px solid #a2a9b1;
+            padding: 0.3rem 0.6rem;
+            text-align: left;
+        }
+        .mw-content table th {
+            background: #eaecf0;
+            font-weight: 600;
+        }
+        .mw-content table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mw-page">
+
+        <!-- ─── HEADER ─── -->
+        <header class="mw-header">
+            <div class="mw-header-left">
+                <div class="mw-logo">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='18' fill='%23f8f9fa' stroke='%23a2a9b1' stroke-width='1.5'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Georgia' font-size='22' fill='%23202122'%3EW%3C/text%3E%3C/svg%3E"
+                    alt="Wiki Index" />
+                    Wiki Index
+                    <small>— the free tools directory</small>
+                </div>
+            </div>
+            <div class="mw-header-right">
+                <a href="#">Talk</a> ·
+                <a href="#">Contributions</a> ·
+                <a href="#">Create account</a> ·
+                <a href="#">Log in</a>
+            </div>
+        </header>
+
+        <!-- ─── TABS ─── -->
+        <nav class="mw-tabs">
+            <a href="#" class="active">Article</a>
+            <a href="#">Talk</a>
+            <a href="#">Read</a>
+            <a href="#">Edit</a>
+            <a href="#">View history</a>
+            <a href="#" style="margin-left:auto;">Tools</a>
+        </nav>
+
+        <!-- ─── BODY ─── -->
+        <div class="mw-body">
+
+            <!-- ─── SIDEBAR (left) ─── -->
+            <aside class="mw-sidebar">
+                <div class="sidebar-title">Navigation</div>
+                <ul>
+                    <li><a href="#">Main page</a></li>
+                    <li><a href="#">Contents</a></li>
+                    <li><a href="#">Current events</a></li>
+                    <li><a href="#">Random article</a></li>
+                    <li><a href="#">About Wiki Index</a></li>
+                    <li><a href="#">Contact us</a></li>
+                </ul>
+
+                <div class="sidebar-title">Contribute</div>
+                <ul>
+                    <li><a href="#">Help</a></li>
+                    <li><a href="#">Learn to edit</a></li>
+                    <li><a href="#">Community portal</a></li>
+                    <li><a href="#">Recent changes</a></li>
+                </ul>
+
+                <div class="sidebar-title">In this page</div>
+                <ul>
+                    <li><a href="#network-tools">Network Tools</a></li>
+                    <li><a href="#password-managers">Password Managers</a></li>
+                    <li><a href="#paywall-bypass">Paywall Bypass</a></li>
+                    <li><a href="#link-in-bio">Link in Bio</a></li>
+                    <li><a href="#captcha-tools">Captcha Tools</a></li>
+                    <li><a href="#chat-tools">Chat Tools</a></li>
+                    <li><a href="#qr-code-tools">QR Code Tools</a></li>
+                    <li><a href="#rss-tools">RSS Tools</a></li>
+                    <li><a href="#search-tools">Search Tools</a></li>
+                    <li><a href="#url-tools">URL Tools</a></li>
+                    <li><a href="#email-tools">Email Tools</a></li>
+                    <li><a href="#browser-tools">Browser Tools</a></li>
+                    <li><a href="#archiving">Archiving</a></li>
+                    <li><a href="#osint">OSINT</a></li>
+                </ul>
+            </aside>
+
+            <!-- ─── MAIN CONTENT ─── -->
+            <main class="mw-content">
+
+                <!-- ─── INFOBOX ─── -->
+                <table class="infobox">
+                    <tr><td colspan="2" class="infobox-title">Internet Tools</td></tr>
+                    <tr><td colspan="2" class="infobox-sub">A comprehensive directory</td></tr>
+                    <tr><th>Category</th><td>Web tools, utilities</td></tr>
+                    <tr><th>Sub‑categories</th><td>20+</td></tr>
+                    <tr><th>Total entries</th><td>200+</td></tr>
+                    <tr><th>Maintained by</th><td>Wiki Index community</td></tr>
+                    <tr><th>First published</th><td>2023</td></tr>
+                    <tr><th>License</th><td>CC BY‑SA 4.0</td></tr>
+                    <tr><th>Website</th><td><a href="https://wiki-index.pages.dev/">wiki-index.pages.dev</a></td></tr>
+                </table>
+
+                <!-- ─── TITLE ─── -->
+                <h1>Internet Tools</h1>
+
+                <p style="font-size:1.05rem; margin-bottom:0.4rem;">
+                    <strong>Internet Tools</strong> is a curated collection of utilities,
+                    browser extensions, and online services that help users navigate,
+                    secure, and enhance their experience on the web. This page covers
+                    everything from network diagnostics to privacy tools,
+                    password managers, archiving solutions, and open‑source intelligence
+                    (OSINT) resources.
+                </p>
+                <div class="small-note" style="margin-bottom:1rem;">
+                    <span class="badge">2026‑08‑10</span> &nbsp;·&nbsp; 200+ tools &nbsp;·&nbsp;
+                    <a href="#">view source</a> &nbsp;·&nbsp; <a href="#">discussion</a>
+                </div>
+
+                <!-- ─── TOC ─── -->
+                <div class="toc">
+                    <div class="toc-title">Contents</div>
+                    <ul>
+                        <li><a href="#network-tools">1 Network Tools</a></li>
+                        <li><a href="#password-managers">2 Password Managers</a></li>
+                        <li><a href="#paywall-bypass">3 Paywall Bypass</a></li>
+                        <li><a href="#link-in-bio">4 Link in Bio</a></li>
+                        <li><a href="#captcha-tools">5 Captcha Tools</a></li>
+                        <li><a href="#chat-tools">6 Chat Tools</a></li>
+                        <li><a href="#qr-code-tools">7 QR Code Tools</a></li>
+                        <li><a href="#rss-tools">8 RSS Tools</a>
+                            <ul>
+                                <li><a href="#rss-readers">8.1 RSS Readers</a></li>
+                                <li><a href="#rss-feed-generators">8.2 RSS Feed Generators</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#search-tools">9 Search Tools</a>
+                            <ul>
+                                <li><a href="#search-engines">9.1 Search Engines</a></li>
+                                <li><a href="#custom-search-engines">9.2 Custom Search Engines</a></li>
+                                <li><a href="#google-search-tools">9.3 Google Search Tools</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#url-tools">10 URL Tools</a>
+                            <ul>
+                                <li><a href="#redirect-bypass">10.1 Redirect Bypass</a></li>
+                                <li><a href="#short-link-tools">10.2 Short Link Tools</a></li>
+                                <li><a href="#url-shorteners">10.3 URL Shorteners</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#email-tools">11 Email Tools</a>
+                            <ul>
+                                <li><a href="#email-clients">11.1 Email Clients</a></li>
+                                <li><a href="#temp-mail">11.2 Temp Mail</a></li>
+                                <li><a href="#email-aliasing">11.3 Email Aliasing</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#browser-tools">12 Browser Tools</a>
+                            <ul>
+                                <li><a href="#firefox-tools">12.1 Firefox Tools</a></li>
+                                <li><a href="#chromium-tools">12.2 Chromium Tools</a></li>
+                                <li><a href="#browser-extensions">12.3 Browser Extensions</a></li>
+                                <li><a href="#userscripts">12.4 Userscripts</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#archiving">13 Archiving</a>
+                            <ul>
+                                <li><a href="#archive-services">13.1 Archive Services</a></li>
+                                <li><a href="#web-archiving-tools">13.2 Web Archiving Tools</a></li>
+                                <li><a href="#web-scraping">13.3 Web Scraping &amp; Crawling</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#osint">14 Open‑Source Intelligence (OSINT)</a></li>
+                        <li><a href="#see-also">15 See also</a></li>
+                    </ul>
+                </div>
+
+                <!-- ─── CONTENT ─── -->
+
+                <!-- 1. NETWORK TOOLS -->
+                <h2 id="network-tools">1 Network Tools <span class="badge">edit</span></h2>
+                <p>Diagnose, monitor, and test your internet connection with these open‑source and free tools.</p>
+                <ul>
+                    <li><strong><a href="https://fast.com/">fast.com</a></strong> — Netflix’s speed test; <a href="https://greasyfork.org/en/scripts/579474">Blur Info</a> / <a href="https://github.com/sindresorhus/fast-cli">CLI</a></li>
+                    <li><strong><a href="https://speed.cloudflare.com/">Cloudflare Speed Test</a></strong> — comprehensive latency &amp; speed; <a href="https://github.com/kavehtehrani/cloudflare-speed-cli">CLI</a></li>
+                    <li><strong><a href="https://openspeedtest.com/">OpenSpeedTest</a></strong> — HTML5‑based; <a href="https://github.com/openspeedtest/Speed-Test">GitHub</a></li>
+                    <li><strong><a href="https://librespeed.org/">LibreSpeed</a></strong> — lightweight, self‑hostable; <a href="https://github.com/librespeed/speedtest">GitHub</a></li>
+                    <li><strong><a href="https://safing.io/">Safing Portmaster</a></strong> — network monitor, DNS resolver, firewall; <a href="https://discord.com/invite/9ScnccuXaZ">Discord</a> / <a href="https://github.com/safing">GitHub</a></li>
+                    <li><strong><a href="https://www.wireshark.org/">Wireshark</a></strong> — packet analyzer for deep network inspection</li>
+                    <li><strong><a href="https://www.pingplotter.com/">PingPlotter</a></strong> — visual traceroute &amp; ping monitoring</li>
+                    <li><strong><a href="https://www.nirsoft.net/utils/wifi_information_view.html">WiFiInfoView</a></strong> — Wi‑Fi network scanner (Windows)</li>
+                </ul>
+
+                <!-- 2. PASSWORD MANAGERS -->
+                <h2 id="password-managers">2 Password Managers <span class="badge">edit</span></h2>
+                <p>Securely store, generate, and manage your passwords across all devices.</p>
+                <ul>
+                    <li><strong><a href="https://keepassxc.org/">KeePassXC</a></strong> — cross‑platform, offline; <a href="https://keepassxc.org/docs/KeePassXC_GettingStarted">Guide</a> / <a href="https://github.com/lgg/awesome-keepass">Resources</a> / <a href="https://github.com/keepassxreboot/keepassxc">GitHub</a></li>
+                    <li><strong><a href="https://bitwarden.com/">Bitwarden</a></strong> — open‑source, cloud‑sync; all platforms; <a href="https://github.com/AChep/keyguard-app">Alt Client</a> / <a href="https://github.com/bitwarden">GitHub</a></li>
+                    <li><strong><a href="https://proton.me/pass">Proton Pass</a></strong> — end‑to‑end encrypted; all platforms</li>
+                    <li><strong><a href="https://1password.com/">1Password</a></strong> — polished UI, family plans, extensive integrations</li>
+                    <li><strong><a href="https://www.dashlane.com/">Dashlane</a></strong> — built‑in VPN &amp; dark‑web monitoring</li>
+                    <li><strong><a href="https://keepass.info/">KeePass</a></strong> — classic offline manager (Windows); <a href="https://keepass.info/plugins.html">Plugins</a> / <a href="https://github.com/lgg/awesome-keepass">Resources</a></li>
+                    <li><strong><a href="https://www.keepassdx.com/">KeePassDX</a></strong> — Android client for KeePass</li>
+                    <li><strong><a href="https://keepassium.com/">KeePassium</a></strong> — iOS / macOS client for KeePass</li>
+                </ul>
+
+                <!-- 3. PAYWALL BYPASS -->
+                <h2 id="paywall-bypass">3 Paywall Bypass <span class="badge">edit</span></h2>
+                <p>Access articles behind paywalls while respecting fair use.</p>
+                <ul>
+                    <li><strong><a href="https://gitflic.ru/project/magnolia1234/bpc_uploads">Bypass Paywalls Clean</a></strong> — browser extension; <a href="https://x.com/Magnolia1234B">X</a></li>
+                    <li><strong><a href="https://pressreleased.alwaysdata.net/">PressReleased</a></strong> — paywall bypass tool; <a href="https://discord.gg/fn33a5mq8w">Discord</a></li>
+                    <li><strong><a href="https://freedium-mirror.cfd/">Freedium</a></strong>, <a href="https://readmedium.com/">ReadMedium</a>, <a href="https://github.com/Xatta-Trone/medium-parser-extension">Medium Parser</a> — bypass Medium paywalls</li>
+                    <li><strong><a href="https://wallabag.org/">wallabag</a></strong> — self‑hosted read‑it‑later; <a href="https://github.com/wallabag/wallabag/wiki/wallabag-ecosystem">Resources</a></li>
+                    <li><strong><a href="https://github.com/everywall/ladder">Ladder</a></strong> — self‑hosted paywall remover</li>
+                    <li><strong><a href="https://12ft.io/">12ft.io</a></strong> — remove paywalls and clutter</li>
+                </ul>
+
+                <!-- 4. LINK IN BIO -->
+                <h2 id="link-in-bio">4 Link in Bio <span class="badge">edit</span></h2>
+                <p>Create a single landing page for all your important links.</p>
+                <ul>
+                    <li><strong><a href="https://linktr.ee/">Linktree</a></strong> — unlimited links, custom URLs</li>
+                    <li><strong><a href="https://linkstack.org">Linkstack</a></strong> — self‑hosted, open‑source; <a href="https://github.com/LinkStackOrg/LinkStack">GitHub</a></li>
+                    <li><strong><a href="https://littlelink.io/">LittleLink</a></strong> — minimalist, self‑hosted</li>
+                    <li><strong><a href="https://carrd.co/">Carrd</a></strong> — one‑page websites, multiple designs</li>
+                    <li><strong><a href="https://bio.link/">bio.link</a></strong> — analytics &amp; custom branding</li>
+                    <li><strong><a href="https://www.flowcode.com/">Flowcode</a></strong> — QR‑code‑first link pages</li>
+                </ul>
+
+                <!-- 5. CAPTCHA TOOLS -->
+                <h2 id="captcha-tools">5 Captcha Tools <span class="badge">edit</span></h2>
+                <ul>
+                    <li><strong><a href="https://github.com/dessant/buster">Buster</a></strong> — auto solve captchas via speech‑to‑text; <a href="../notes/#buster-note">Improve success rate</a></li>
+                    <li><strong><a href="https://www.2captcha.com/">2Captcha</a></strong> — human‑powered captcha solving service</li>
+                    <li><strong><a href="https://anti-captcha.com/">Anti‑Captcha</a></strong> — API‑based solver</li>
+                    <li><strong><a href="https://github.com/desktop-app/captcha-solver">Captcha Solver</a></strong> — open‑source desktop helper</li>
+                </ul>
+
+                <!-- 6. CHAT TOOLS -->
+                <h2 id="chat-tools">6 Chat Tools <span class="badge">edit</span></h2>
+                <p>Instant messaging, voice chat, and collaboration platforms.</p>
+                <ul>
+                    <li><strong><a href="https://stoat.chat/">Stoat</a></strong> — Discord alternative; all platforms; <a href="https://rvlt.gg/discover/bots">Bots</a> / <a href="https://github.com/stoatchat/awesome-stoat">Resources</a></li>
+                    <li><strong><a href="https://www.mumble.info/">Mumble</a></strong> — low‑latency voice chat; open‑source; <a href="https://github.com/mumble-voip/mumble">GitHub</a></li>
+                    <li><strong><a href="https://hack.chat/">Hack.chat</a></strong>, <a href="https://shick.me/">Shick</a>, <a href="https://www.leapchat.org/">LeapChat</a>, <a href="https://otr.to/">otr.to</a> — minimal, no‑sign‑up web chats</li>
+                    <li><strong><a href="https://chitchatter.im/">Chitchatter</a></strong> — peer‑to‑peer; <a href="https://github.com/jeremyckahn/chitchatter">GitHub</a></li>
+                    <li><strong><a href="https://tlk.io/">tlk.io</a></strong> — simple, temporary chat rooms</li>
+                    <li><strong><a href="https://gajim.org/">Gajim</a></strong> — XMPP client; Windows / macOS / Linux; <a href="https://dev.gajim.org/gajim/gajim">Source</a></li>
+                    <li><strong><a href="https://xmpp.org/getting-started/">XMPP</a></strong> — open‑standard messaging ecosystem</li>
+                </ul>
+                <div class="tip-box">
+                    <strong>📘 See also:</strong> <a href="../privacy/#encrypted-messengers">Privacy‑Focused Messengers</a> ·
+                    <a href="../downloading/#irc-tools">IRC Clients</a> ·
+                    <a href="../social-media-tools/#discord-tools">Discord Tools</a> ·
+                    <a href="../social-media-tools/#telegram-tools">Telegram Tools</a>
+                </div>
+
+                <!-- 7. QR CODE TOOLS -->
+                <h2 id="qr-code-tools">7 QR Code Tools <span class="badge">edit</span></h2>
+                <ul>
+                    <li><strong><a href="https://mini-qr-code-generator.vercel.app/">Mini QR</a></strong> — customizable generator; <a href="https://github.com/lyqht/mini-qr">GitHub</a></li>
+                    <li><strong><a href="https://www.qr-code-generator.com/">QR Code Generator</a></strong> — with analytics and design options</li>
+                    <li><strong><a href="https://qrexplore.com/">QR Explore</a></strong> — scan and decode QR codes</li>
+                    <li><strong><a href="https://github.com/nayuki/QR-Code-generator">QR-Code-generator</a></strong> — library for developers</li>
+                </ul>
+
+                <!-- 8. RSS TOOLS -->
+                <h2 id="rss-tools">8 RSS Tools <span class="badge">edit</span></h2>
+                <p>Aggregate, read, and generate RSS feeds to stay informed.</p>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://rss.tips/">All about RSS</a></strong> / <a href="https://t.me/s/aboutrss">Telegram</a> / <a href="https://github.com/AboutRSS/ALL-about-RSS">GitHub</a> — comprehensive RSS index</li>
+                    <li><a href="https://rentry.org/rrstango">RSSTango</a> or <a href="https://gist.github.com/thefranke/63853a6f8c499dc97bc17838f6cedcc2">RSS</a> — more resource lists</li>
+                </ul>
+
+                <h3 id="rss-readers">8.1 RSS Readers</h3>
+                <ul>
+                    <li><strong><a href="https://feedly.com/">Feedly</a></strong> — cross‑platform, AI‑powered; <a href="https://olsh.me/Feedly-Notifier/">Notifier</a></li>
+                    <li><strong><a href="https://github.com/martinrotter/rssguard">RSS Guard</a></strong> — open‑source, multi‑platform; <a href="https://github.com/Owyn/CSS2RSS">Scraper</a> / <a href="https://discord.com/invite/7xbVMPPNqH">Discord</a></li>
+                    <li><strong><a href="https://www.inoreader.com/">Inoreader</a></strong> — feature‑rich, cloud‑based</li>
+                    <li><strong><a href="https://nodetics.com/feedbro/">Feedbro</a></strong> — browser extension (Chrome / Firefox)</li>
+                    <li><strong><a href="https://addons.mozilla.org/en-US/firefox/addon/sage-like/">Sage‑Like</a></strong> — Firefox sidebar reader</li>
+                    <li><strong><a href="https://github.com/brief-rss/brief">Brief</a></strong> — minimalist Firefox extension</li>
+                    <li><strong><a href="https://fraidyc.at/">Fraidycat</a></strong> — follow blogs, YouTube, Twitter in one feed</li>
+                    <li><strong><a href="https://miniflux.app/">Miniflux</a></strong> — self‑hosted, minimalist web reader</li>
+                </ul>
+
+                <h3 id="rss-feed-generators">8.2 RSS Feed Generators</h3>
+                <ul>
+                    <li><strong><a href="https://rss-bridge.org/bridge01/">RSS Bridge</a></strong> — generate RSS for sites without feeds; <a href="https://github.com/RSS-Bridge/rss-bridge">GitHub</a></li>
+                    <li><strong><a href="https://fetchrss.com/">FetchRSS</a></strong> — turn any webpage into RSS</li>
+                    <li><strong><a href="https://politepol.com/">PolitePol</a></strong> — generate RSS from social media</li>
+                    <li><strong><a href="https://github.com/kodie/fivefilters">FiveFilters</a></strong> — full‑text RSS extraction</li>
+                </ul>
+
+                <!-- 9. SEARCH TOOLS -->
+                <h2 id="search-tools">9 Search Tools <span class="badge">edit</span></h2>
+                <ul>
+                    <li><strong><a href="https://www.shodan.io/">Shodan</a></strong> — search engine for internet‑connected devices</li>
+                    <li><strong><a href="https://fofa.info/">FOFA</a></strong> — global cyberspace asset search; <a href="https://github.com/FofaInfo/Awesome-FOFA">GitHub</a></li>
+                    <li><strong><a href="https://www.censys.io/">Censys</a></strong> — internet intelligence platform</li>
+                    <li><strong><a href="https://www.zoomeye.org/">ZoomEye</a></strong> — cyberspace mapping search</li>
+                </ul>
+
+                <h3 id="search-engines">9.1 Search Engines</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://www.faganfinder.com/">Fagan Finder</a></strong>, <a href="https://wikipedia.org/wiki/List_of_search_engines">Search Engine Index</a>, <a href="http://www.directsearch.net/">DirectSearch.Net</a>, <a href="https://www.searchenginecolossus.com/">Search Engine Colossus</a> — search engine indexes</li>
+                    <li><strong><a href="../privacy/#search-engines">Privacy Search Engines</a></strong> — DuckDuckGo, Startpage, SearXNG, etc.</li>
+                    <li><strong><a href="../ai/#specialized-chatbots">AI Search Engines</a></strong> — Perplexity, You.com, Phind, etc.</li>
+                    <li><strong><a href="../image-tools/#image-search-engines">Image Search Engines</a></strong> — TinEye, Google Images, Yandex, etc.</li>
+                </ul>
+
+                <h3 id="custom-search-engines">9.2 Custom Search Engines</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://start.me/p/EL84Km/cse-utopia">CSE Utopia</a></strong>, <a href="https://github.com/davzoku/awesome-custom-search-engines">Awesome CSEs</a> — custom search engine indexes</li>
+                    <li><strong><a href="https://hizsearch.pages.dev/">HizSearch</a></strong> — multi‑site game search; <a href="https://github.com/hiz0147/HizSteamButton">Steam Button</a></li>
+                    <li><strong><a href="https://virgil.samidy.com/Games/">Virgil Game Search</a></strong> — game‑focused CSE; <a href="https://github.com/SamidyFR/Virgil">GitHub</a></li>
+                    <li><strong><a href="https://cse.google.com/cse?cx=006516753008110874046:cbjowp5sdqg">Game Download CSE</a></strong> — Google Custom Search for games</li>
+                </ul>
+
+                <h3 id="google-search-tools">9.3 Google Search Tools</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://searchtweaks.com/">SearchTweaks</a></strong> — enhance Google search with filters &amp; shortcuts</li>
+                    <li><strong><a href="https://greasyfork.org/en/scripts/396482">Google Search Extra</a></strong> — Userscript for Google results</li>
+                    <li><strong><a href="https://github.com/skydoves/PowerSearch">PowerSearch</a></strong> — advanced Google search UI</li>
+                </ul>
+
+                <!-- 10. URL TOOLS -->
+                <h2 id="url-tools">10 URL Tools <span class="badge">edit</span></h2>
+                <ul>
+                    <li><strong><a href="https://flagfox.wordpress.com/">Flagfox</a></strong> — Firefox multi‑tool; <a href="https://files.catbox.moe/s7s4pv.png">full tool list</a></li>
+                    <li><strong><a href="https://httpstatus.io/">HTTPStatus</a></strong> — check status codes &amp; redirect chains</li>
+                    <li><strong><a href="https://lychee.cli.rs/">lychee</a></strong> — URL scanner; <a href="https://github.com/lycheeverse/lychee/">GitHub</a></li>
+                    <li><strong><a href="../text-tools/#encode--decode">Encode / Decode URLs</a></strong> — URL encoding utilities</li>
+                </ul>
+
+                <h3 id="redirect-bypass">10.1 Redirect Bypass</h3>
+                <ul>
+                    <li><strong><a href="https://codeberg.org/gongchandang49/bypass-all-shortlinks-debloated">Bypass All Shortlinks Debloated</a></strong> — shortener bypass</li>
+                    <li><strong><a href="https://skipped.lol/evade/evade.user.js">Evade</a></strong> — ad‑link bypasser; <a href="https://skipped.lol/">site</a></li>
+                    <li><strong><a href="https://bypass.vip/">Bypass.vip</a></strong> — ad‑link bypass; <a href="https://github.com/bypass-vip/userscript/raw/refs/heads/main/bypass-vip.user.js">Userscript</a> / <a href="https://bypass.vip/discord">Discord</a></li>
+                    <li><strong><a href="https://bypass.lc/">Bypass.lc</a></strong> — alternative ad‑link bypass</li>
+                </ul>
+
+                <h3 id="short-link-tools">10.2 Short Link Tools</h3>
+                <ul>
+                    <li><strong><a href="https://wheregoes.com/">WhereGoes</a></strong> — trace redirect paths</li>
+                    <li><strong><a href="https://redirectdetective.com/">Redirect Detective</a></strong> — analyze short links</li>
+                </ul>
+
+                <h3 id="url-shorteners">10.3 URL Shorteners</h3>
+                <ul>
+                    <li><strong><a href="https://spoo.me/">spoo.me</a></strong> — <code>spoo.me/GcIJ2J</code>; <a href="https://spoo.me/discord">Discord</a> / <a href="https://github.com/spoo-me/url-shortener">GitHub</a></li>
+                    <li><strong><a href="https://t.ly/">T.LY</a></strong> — <code>t.ly/hOy4V</code></li>
+                    <li><strong><a href="https://tinyurl.com/">TinyURL</a></strong> — classic, reliable shortener</li>
+                    <li><strong><a href="https://rebrandly.com/">Rebrandly</a></strong> — branded links with analytics</li>
+                </ul>
+
+                <!-- 11. EMAIL TOOLS -->
+                <h2 id="email-tools">11 Email Tools <span class="badge">edit</span></h2>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://wikipedia.org/wiki/Comparison_of_webmail_providers">Email Providers</a></strong> — comparison of webmail services</li>
+                    <li><strong><a href="../privacy/#email-privacy">Email Privacy Services</a></strong> — ProtonMail, Tutanota, etc.</li>
+                    <li><strong><a href="https://inboxreads.co/">InboxReads</a></strong> / <a href="https://readsom.com/">Readsom</a> — email newsletter archives</li>
+                </ul>
+
+                <h3 id="email-clients">11.1 Email Clients</h3>
+                <ul>
+                    <li><strong><a href="https://www.betterbird.eu/">Betterbird</a></strong> — Thunderbird fork with improvements; Windows / macOS / Linux</li>
+                    <li><strong><a href="https://www.thunderbird.net/">Thunderbird</a></strong> — Mozilla’s email client; <a href="https://codeberg.org/celenity/Dove">Privacy Config</a> / <a href="https://github.com/Ximi1970/systray-x">Tray Icon</a></li>
+                    <li><strong><a href="https://getmailspring.com/">Mailspring</a></strong> — modern, fast; <a href="https://github.com/topics/mailspring-theme">Themes</a> / <a href="https://github.com/Foundry376/Mailspring">GitHub</a></li>
+                    <li><strong><a href="https://www.emclient.com/">eM Client</a></strong> — polished, Windows / macOS</li>
+                    <li><strong><a href="https://www.claws-mail.org/">Claws Mail</a></strong> — lightweight, GTK‑based</li>
+                </ul>
+
+                <h3 id="temp-mail">11.2 Temp Mail</h3>
+                <div class="tip-box">
+                    <strong>💡 Tip:</strong> For longer‑lasting disposable addresses, see <a href="#email-aliasing">Email Aliasing</a> below.
+                </div>
+                <ul>
+                    <li><strong><a href="https://smailpro.com/temporary-email">SmailPro</a></strong> — Gmail &amp; Outlook, 30+ domains</li>
+                    <li><strong><a href="https://zemail.me/">Zemail</a></strong> — Gmail, forever / 1 day, 7 domains</li>
+                    <li><strong><a href="https://emailnator.com/">Gmailnator</a></strong> — Gmail, forever / 1 day, 6 domains</li>
+                    <li><strong><a href="https://tempr.email/en/">Tempr.email</a></strong> — forever / 1 month, 50+ domains</li>
+                    <li><strong><a href="https://inboxes.com/">Inboxes</a></strong> — forever / 7 days, 19 domains</li>
+                    <li><strong><a href="https://mail.tm/">Mail.tm</a></strong> — forever / 7 days, 1 domain</li>
+                    <li><strong><a href="https://temp-mail.org/">temp-mail.org</a></strong> — forever / 2 hours; <a href="https://t.me/TempMail_org_bot">Telegram Bot</a></li>
+                    <li><strong><a href="https://temp-mail.io/">temp-mail.io</a></strong> — 1 day, 12 domains</li>
+                    <li><strong><a href="https://www.guerrillamail.com/">Guerrilla Mail</a></strong> — disposable, 1‑hour expiry</li>
+                </ul>
+
+                <h3 id="email-aliasing">11.3 Email Aliasing</h3>
+                <div class="tip-box">
+                    <strong>💡 Tip:</strong> <strong>Catch‑all</strong> aliases (e.g. <code>@username.anonaddy.com</code>) are technically unlimited but may link to your identity. Prefer <strong>shared</strong> aliases like <code>x481n904@anonaddy.me</code> for better privacy.
+                </div>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://email-aliasing-comparison.pages.dev/">Email Aliasing Comparison</a></strong> — comprehensive feature matrix; <a href="https://github.com/fynks/email-aliasing-comparison">GitHub</a></li>
+                    <li><strong><a href="https://duckduckgo.com/email/">DuckDuckGo Email Protection</a></strong> — unlimited shared aliases; <a href="https://github.com/Lanshuns/Qwacky">Qwacky</a> / <a href="https://bitwarden.com/help/generator#tab-duckduckgo-3Uj911RtQsJD9OAhUuoKrz">Bitwarden integration</a></li>
+                    <li><strong><a href="https://addy.io/">Addy.io</a></strong> — open‑source alias service; self‑hostable</li>
+                    <li><strong><a href="https://simplelogin.io/">SimpleLogin</a></strong> — premium alias service (acquired by Proton)</li>
+                    <li><strong><a href="https://33mail.com/">33Mail</a></strong> — catch‑all domain aliases</li>
+                </ul>
+
+                <!-- 12. BROWSER TOOLS -->
+                <h2 id="browser-tools">12 Browser Tools <span class="badge">edit</span></h2>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://privacytests.org/">Browser Comparisons</a></strong> / <a href="https://eylenburg.github.io/browser_comparison.htm">Eylenburg</a> — compare browsers by privacy &amp; features</li>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://github.com/nerdyslacker/desktop-web-browsers">Desktop Browser List</a></strong> — index of desktop browsers</li>
+                    <li><strong><a href="../beginners-guide/#browsers">Recommended Browsers</a></strong> — Firefox, Brave, Vivaldi, etc.</li>
+                    <li><strong><a href="../privacy/#browser-privacy">Privacy Browsers</a></strong> — Tor Browser, Mullvad Browser, etc.</li>
+                    <li><strong><a href="https://browserbench.org/">BrowserBench</a></strong> / <a href="https://wpt.fyi">WPT</a> — benchmark tests</li>
+                </ul>
+
+                <h3 id="firefox-tools">12.1 Firefox Tools</h3>
+                <div class="tip-box">
+                    <strong>💡 Note:</strong> Firefox includes a free built‑in VPN (Mozilla VPN) in some regions.
+                </div>
+                <ul>
+                    <li><strong><a href="https://www.firefox.com/">Firefox</a></strong> — stable, <a href="https://www.firefox.com/channel/desktop#nightly">Nightly</a>, <a href="https://www.firefox.com/channel/desktop#beta">Beta</a>; <a href="https://github.com/mozilla-firefox/firefox">GitHub</a></li>
+                    <li><strong><a href="https://whattrainisitnow.com/">Firefox Trains</a></strong> — official release tracker; <a href="https://github.com/mozilla/releases_insights">GitHub</a></li>
+                    <li><strong><a href="https://github.com/arkenfox/user.js">arkenfox</a></strong> / <a href="https://github.com/yokoffing/Betterfox">Betterfox</a> — user.js privacy hardening; <a href="https://arkenfox.github.io/gui/">GUI</a></li>
+                    <li><strong><a href="https://addons.mozilla.org/firefox/extensions/">Firefox Add‑ons</a></strong> — official store</li>
+                    <li><strong><a href="https://addons.mozilla.org/en-US/firefox/addon/foxytab/">FoxyTab</a></strong> — tab management tools</li>
+                </ul>
+
+                <h3 id="chromium-tools">12.2 Chromium Tools</h3>
+                <ul>
+                    <li><strong><a href="https://chromewebstore.google.com/">Chrome Web Store</a></strong> — official extension store</li>
+                    <li><strong><a href="https://github.com/NeverDecaf/chromium-web-store">chromium-web-store</a></strong> — add extensions to Ungoogled Chromium</li>
+                    <li><strong><a href="https://clipper.website/">Clipper</a></strong> — copy content in multiple formats</li>
+                    <li><strong><a href="https://www.crx4chrome.com/">Crx4Chrome</a></strong> — third‑party Chrome extension archive</li>
+                </ul>
+
+                <h3 id="browser-extensions">12.3 Browser Extensions</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://webextension.org/">WebExtension.org</a></strong> / <a href="https://mybrowseraddon.com/">MyBrowserAddon</a> — open‑source extension indexes</li>
+                    <li><strong><a href="../privacy/#adblocking">Adblocking Extensions</a></strong> — uBlock Origin, AdGuard, etc.</li>
+                    <li><strong><a href="../text-tools/#translators">Translation Extensions</a></strong> — Translate, ToGoogleTranslate, etc.</li>
+                    <li><strong><a href="https://add0n.com/stylus.html">Stylus</a></strong> — custom CSS themes; <a href="https://github.com/openstyles/stylus/">GitHub</a></li>
+                    <li><strong>Stylus Styles:</strong> <a href="https://userstyles.world/">UserStyles</a>, <a href="https://uso.kkx.one/">2</a>, <a href="https://github.com/zettaexa/userstyles">OLED</a>, <a href="https://github.com/catppuccin/userstyles">Catppuccin</a></li>
+                    <li><strong><a href="https://darkreader.org/">Dark Reader</a></strong> / <a href="https://midnight-lizard.org/">Midnight Lizard</a> — dark mode for any site</li>
+                    <li><strong>ScrollAnywhere</strong> — <a href="https://addons.mozilla.org/en-US/firefox/addon/scroll_anywhere/">Firefox</a> / <a href="https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi">Chrome</a></li>
+                    <li><strong><a href="https://webextension.org/listing/tab-discard.html">Auto Tab Discard</a></strong> / <a href="https://github.com/tabwrangler/tabwrangler">Tab Wrangler</a> — unload inactive tabs</li>
+                    <li><strong>Clipboard2File</strong> — <a href="https://github.com/vord1080/clipboard2file/">Firefox</a> / <a href="https://github.com/daijro/Clipboard2File-Chrome">Chrome</a> — upload images from clipboard</li>
+                </ul>
+
+                <h3 id="userscripts">12.4 Userscripts</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://greasyfork.org/">Greasy Fork</a></strong>, <a href="https://openuserjs.org/">OpenUserJS</a>, <a href="https://scriptcat.org/en">ScriptCat</a> — userscript stores</li>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://github.com/awesome-scripts/awesome-userscripts">Awesome Userscripts</a></strong>, <a href="https://github.com/XIU2/UserScript">XIU2</a>, <a href="https://www.userscript.zone/">Userscript.zone</a> — curated indexes</li>
+                    <li><strong><a href="https://violentmonkey.github.io/">Violentmonkey</a></strong> / <a href="https://docs.scriptcat.org/en/">ScriptCat</a> / <a href="https://addons.mozilla.org/en-US/firefox/addon/firemonkey/">FireMonkey</a> — userscript managers</li>
+                    <li><strong><a href="https://greasyfork.org/en/scripts/24204">Picviewer CE+</a></strong> — enhanced image viewer</li>
+                    <li><strong>Greasy Fork tools:</strong> <a href="https://greasyfork.org/en/scripts/473830">Enhancements</a> / <a href="https://greasyfork.org/en/scripts/393396">Helper</a> / <a href="https://greasyfork.org/en/scripts/368183">Tweaks</a></li>
+                </ul>
+
+                <!-- 13. ARCHIVING -->
+                <h2 id="archiving">13 Archiving <span class="badge">edit</span></h2>
+                <p>Preserve web content for posterity.</p>
+
+                <h3 id="archive-services">13.1 Archive Services</h3>
+                <ul>
+                    <li><strong><a href="https://archive.org/">Internet Archive</a></strong> — digital library of websites, books, media</li>
+                    <li><strong><a href="https://web.archive.org/">Wayback Machine</a></strong> — web page archive</li>
+                    <li><strong>Wayback tools:</strong> <a href="https://github.com/jsvine/waybackpack">Downloader</a> / <a href="https://github.com/internetarchive/wayback-machine-webextension">Extension</a> / <a href="https://gitlab.com/gkrishnaks/WaybackEverywhere-Firefox">Auto‑load</a></li>
+                    <li><strong><a href="https://cachedview.nl/">CachedView</a></strong> / <a href="https://cybdetective.com/quickcacheandarhivesearch.html">Quick Cache</a> — aggregate cache results</li>
+                    <li><strong><a href="https://github.com/dessant/web-archives">Web Archives</a></strong> — browser extension for multiple archive services</li>
+                </ul>
+
+                <h3 id="web-archiving-tools">13.2 Web Archiving Tools</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://github.com/iipc/awesome-web-archiving">Awesome Web Archiving</a></strong> — comprehensive tool list</li>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://webrecorder.net/">Webrecorder</a></strong> — open‑source archiving suite</li>
+                    <li><strong><a href="https://archivebox.io">ArchiveBox</a></strong> — self‑hosted web archiving; <a href="https://github.com/archivebox/archivebox">GitHub</a></li>
+                    <li><strong><a href="https://www.httrack.com/">HTTrack</a></strong> — website downloader; <a href="https://github.com/xroche/httrack">GitHub</a></li>
+                    <li><strong><a href="https://get.kiwix.org/">Kiwix</a></strong> — offline Wikipedia reader; <a href="https://browse.library.kiwix.org/">Library</a> / <a href="https://zimit.kiwix.org/">Zim Reader</a></li>
+                    <li><strong><a href="https://github.com/DhruvParikh1/MarkSnip">MarkSnip</a></strong> / <a href="https://markdowndown.vercel.app/">MarkdownDown</a> — save pages as Markdown</li>
+                    <li><strong><a href="https://github.com/passthesh3ll/datahoarder-website-to-markdown">datahoarder-website-to-markdown</a></strong> — index‑to‑Markdown converter</li>
+                </ul>
+
+                <h3 id="web-scraping">13.3 Web Scraping &amp; Crawling</h3>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://github.com/lorien/awesome-web-scraping">Awesome Web Scraping</a></strong> / <strong><a href="https://webscraping.fyi/">Web Scraping FYI</a></strong> — tools &amp; resources</li>
+                    <li><strong><a href="https://chromewebstore.google.com/detail/instant-data-scraper/ofaokhiedipichpaobibbnahnkdoiiah">Instant Data Scraper</a></strong> — browser extension</li>
+                    <li><strong><a href="https://scrapy.org/">Scrapy</a></strong> — Python framework for large‑scale scraping</li>
+                    <li><strong><a href="https://www.selenium.dev/">Selenium</a></strong> — browser automation for dynamic content</li>
+                    <li><strong><a href="https://playwright.dev/">Playwright</a></strong> — modern cross‑browser automation</li>
+                </ul>
+
+                <!-- 14. OSINT -->
+                <h2 id="osint">14 Open‑Source Intelligence (OSINT) <span class="badge">edit</span></h2>
+                <p>Gather and analyze public information.</p>
+                <ul>
+                    <li><span class="emoji">🌐</span> <strong><a href="https://github.com/jivoi/awesome-osint">Awesome OSINT</a></strong> — the definitive OSINT resource list</li>
+                    <li><strong><a href="https://inteltechniques.com/index.html">IntelTechniques</a></strong> / <a href="https://www.osinttechniques.com/">OSINT Techniques</a> — tools and methodologies</li>
+                    <li><strong><a href="https://analystresearchtools.com/">Analyst Research Tools</a></strong> — curated research toolkit</li>
+                    <li><strong><a href="https://www.osintframework.com/">OSINT Framework</a></strong> — interactive mind‑map of OSINT tools</li>
+                    <li><strong><a href="https://www.maltego.com/">Maltego</a></strong> — visual link analysis for OSINT</li>
+                    <li><strong><a href="https://www.recon-ng.com/">Recon‑ng</a></strong> — full‑featured reconnaissance framework</li>
+                    <li><strong><a href="https://theharvester.thc.org/">theHarvester</a></strong> — email / domain / subdomain enumeration</li>
+                </ul>
+
+                <!-- 15. SEE ALSO -->
+                <h2 id="see-also">15 See also <span class="badge">edit</span></h2>
+                <div class="see-also">
+                    <ul>
+                        <li><a href="../privacy/">Privacy Tools</a> — adblockers, VPNs, secure messengers</li>
+                        <li><a href="../social-media-tools/">Social Media Tools</a> — Discord, Telegram, Twitter utilities</li>
+                        <li><a href="../file-tools/">File Tools</a> — download managers, file converters</li>
+                        <li><a href="../video-tools/">Video Tools</a> — downloaders, editors, streaming tools</li>
+                        <li><a href="../image-tools/">Image Tools</a> — search, editing, compression</li>
+                        <li><a href="../text-tools/">Text Tools</a> — translators, formatters, encoders</li>
+                        <li><a href="../storage/">Storage Tools</a> — cloud storage, tab managers</li>
+                        <li><a href="../ai/">AI Tools</a> — chatbots, image generation, assistants</li>
+                    </ul>
+                </div>
+
+                <hr />
+                <p class="small-note" style="text-align:center;">
+                    This page was last edited on 10 August 2026, at 14:30 (UTC).<br />
+                    Text is available under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution‑ShareAlike 4.0 License</a>;
+                    additional terms may apply.  Wiki Index® is a registered trademark of the Wiki Index Foundation, Inc., a non‑profit organization.
+                </p>
+
+            </main>
+        </div>
+
+        <!-- ─── FOOTER ─── -->
+        <footer class="mw-footer">
+            <p>
+                © 2023–2026 <a href="https://wiki-index.pages.dev/">Wiki Index</a> ·
+                Estd 2023 ·
+                This site does not host any files ·
+                <a href="#">Privacy policy</a> ·
+                <a href="#">About Wiki Index</a> ·
+                <a href="#">Disclaimers</a> ·
+                <a href="#">Contact</a>
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
